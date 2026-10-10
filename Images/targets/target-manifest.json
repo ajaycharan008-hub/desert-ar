@@ -1,0 +1,252 @@
+{
+  "count": 19,
+  "targets": [
+    {
+      "targetIndex": 0,
+      "label": "desert-original",
+      "scene": "village",
+      "source": "desert-original.png",
+      "targetImage": "Images/targets/00_desert-original.png",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "right": 1600,
+        "bottom": 377
+      }
+    },
+    {
+      "targetIndex": 1,
+      "label": "1 Khejri Tree",
+      "scene": "tree",
+      "source": "Images/1_Khejri_Tree.png",
+      "targetImage": "Images/targets/01_1-khejri-tree.png",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "right": 755,
+        "bottom": 645
+      }
+    },
+    {
+      "targetIndex": 2,
+      "label": "1 large flower petals",
+      "scene": "flower",
+      "source": "Images/1_large_flower_petals.png",
+      "targetImage": "Images/targets/02_1-large-flower-petals.png",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "right": 390,
+        "bottom": 335
+      }
+    },
+    {
+      "targetIndex": 3,
+      "label": "1 top piece",
+      "scene": "tree",
+      "source": "Images/1_top_piece.png",
+      "targetImage": "Images/targets/03_1-top-piece.png",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "right": 615,
+        "bottom": 475
+      }
+    },
+    {
+      "targetIndex": 4,
+      "label": "1 Women and Daughters Holding Tree",
+      "scene": "story",
+      "source": "Images/1_Women_and_Daughters_Holding_Tree.png",
+      "targetImage": "Images/targets/04_1-women-and-daughters-holding-tree.png",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "right": 485,
+        "bottom": 360
+      }
+    },
+    {
+      "targetIndex": 5,
+      "label": "2 Background Desert Village",
+      "scene": "village",
+      "source": "Images/2_Background_Desert_Village.png",
+      "targetImage": "Images/targets/05_2-background-desert-village.png",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "right": 853,
+        "bottom": 365
+      }
+    },
+    {
+      "targetIndex": 6,
+      "label": "2 front panel",
+      "scene": "panel",
+      "source": "Images/2_front_panel.png",
+      "targetImage": "Images/targets/06_2-front-panel.png",
+      "crop": {
+        "left": 5,
+        "top": 0,
+        "right": 485,
+        "bottom": 175
+      }
+    },
+    {
+      "targetIndex": 7,
+      "label": "2 Man Cutting Tree",
+      "scene": "story",
+      "source": "Images/2_Man_Cutting_Tree.png",
+      "targetImage": "Images/targets/07_2-man-cutting-tree.png",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "right": 275,
+        "bottom": 420
+      }
+    },
+    {
+      "targetIndex": 8,
+      "label": "3 Left Village Houses - Copy (2)",
+      "scene": "village",
+      "source": "Images/3_Left_Village_Houses - Copy (2).png",
+      "targetImage": "Images/targets/08_3-left-village-houses---copy-(2).png",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "right": 458,
+        "bottom": 214
+      }
+    },
+    {
+      "targetIndex": 9,
+      "label": "3 Man Hugging Tree",
+      "scene": "story",
+      "source": "Images/3_Man_Hugging_Tree.png",
+      "targetImage": "Images/targets/09_3-man-hugging-tree.png",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "right": 290,
+        "bottom": 425
+      }
+    },
+    {
+      "targetIndex": 10,
+      "label": "3 side panels",
+      "scene": "panel",
+      "source": "Images/3_side_panels.png",
+      "targetImage": "Images/targets/10_3-side-panels.png",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "right": 438,
+        "bottom": 305
+      }
+    },
+    {
+      "targetIndex": 11,
+      "label": "4 inner petals",
+      "scene": "flower",
+      "source": "Images/4_inner_petals.png",
+      "targetImage": "Images/targets/11_4-inner-petals.png",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "right": 210,
+        "bottom": 345
+      }
+    },
+    {
+      "targetIndex": 12,
+      "label": "4 Right Village Houses",
+      "scene": "village",
+      "source": "Images/4_Right_Village_Houses.png",
+      "targetImage": "Images/targets/12_4-right-village-houses.png",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "right": 441,
+        "bottom": 215
+      }
+    },
+    {
+      "targetIndex": 13,
+      "label": "5 Animals",
+      "scene": "animals",
+      "source": "Images/5_Animals.png",
+      "targetImage": "Images/targets/13_5-animals.png",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "right": 497,
+        "bottom": 240
+      }
+    },
+    {
+      "targetIndex": 14,
+      "label": "5 Mounted Ruler",
+      "scene": "horse",
+      "source": "Images/5_Mounted_Ruler.png",
+      "targetImage": "Images/targets/14_5-mounted-ruler.png",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "right": 343,
+        "bottom": 360
+      }
+    },
+    {
+      "targetIndex": 15,
+      "label": "5 tuning peg strips",
+      "scene": "instrument",
+      "source": "Images/5_tuning_peg_strips.png",
+      "targetImage": "Images/targets/15_5-tuning-peg-strips.png",
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "right": 300,
+        "bottom": 164
+      }
+    },
+    {
+      "targetIndex": 16,
+      "label": "6 Attendant",
+      "scene": "attendant",
+      "source": "Images/6_Attendant.png",
+      "targetImage": "Images/targets/16_6-attendant.png",
+      "crop": {
+        "left": 15,
+        "top": 0,
+        "right": 139,
+        "bottom": 307
+      }
+    },
+    {
+      "targetIndex": 17,
+      "label": "6 stamens",
+      "scene": "flower",
+      "source": "Images/6_stamens.png",
+      "targetImage": "Images/targets/17_6-stamens.png",
+      "crop": {
+        "left": 0,
+        "top": 11,
+        "right": 173,
+        "bottom": 365
+      }
+    },
+    {
+      "targetIndex": 18,
+      "label": "7 large rohida leaves",
+      "scene": "foliage",
+      "source": "Images/7_large_rohida_leaves.png",
+      "targetImage": "Images/targets/18_7-large-rohida-leaves.png",
+      "crop": {
+        "left": 1,
+        "top": 0,
+        "right": 389,
+        "bottom": 390
+      }
+    }
+  ]
+}
