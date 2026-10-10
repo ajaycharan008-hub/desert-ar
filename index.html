@@ -1,41 +1,253 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Rajasthan Desert AR</title>
 
+  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+  <!-- MindAR -->
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .ar-instructions {
+      position: fixed;
+      top: 15px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      color: white;
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      z-index: 10;
+      text-shadow: 1px 1px 4px #000;
+      pointer-events: none;
+    }
+  </style>
+
+  <script>
+    // Make the camel slowly walk from left to right.
+    AFRAME.registerComponent("slow-walk", {
+      schema: {
+        distance: { type: "number", default: 0.35 },
+        speed: { type: "number", default: 0.0003 }
+      },
+
+      init: function () {
+        this.startX = this.el.object3D.position.x;
+        this.startTime = null;
+      },
+
+      tick: function (time) {
+        if (this.startTime === null) this.startTime = time;
+
+        const elapsed = time - this.startTime;
+        const distance = this.data.distance;
+        const speed = this.data.speed;
+
+        // Gentle side-to-side walking movement.
+        this.el.object3D.position.x =
+          this.startX + Math.sin(elapsed * speed) * distance;
+      }
+    });
+  </script>
 </head>
 
-<body style="margin: 0; overflow: hidden;">
+<body>
+  <div class="ar-instructions">
+    Scan your Rajasthan desert picture
+  </div>
+
   <a-scene
-    mindar-image="imageTargetSrc: ./targets.mind;"
+    mindar-image="imageTargetSrc: ./targets.mind; autoStart: true;"
     color-space="sRGB"
     renderer="colorManagement: true, physicallyCorrectLights"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false">
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-assets>
+      <!-- We create the cactus and camel using 3D shapes. -->
+    </a-assets>
 
+    <a-camera
+      position="0 0 0"
+      look-controls="enabled: false">
+    </a-camera>
+
+    <!-- This content appears when your target image is detected. -->
     <a-entity mindar-image-target="targetIndex: 0">
-      <a-text
-        value="Welcome to Rajasthan"
-        position="0 0.5 0"
-        align="center"
-        color="#7A2E2E"
-        width="2">
-      </a-text>
 
-      <a-sphere
-        position="0 0 0"
-        radius="0.15"
-        color="#C89B3C">
-      </a-sphere>
+      <!-- CACTUS BODY -->
+      <a-entity position="-0.35 -0.05 0">
+
+        <!-- Main cactus stem -->
+        <a-cylinder
+          position="0 0.18 0"
+          radius="0.055"
+          height="0.42"
+          color="#477447"
+          material="roughness: 0.9">
+        </a-cylinder>
+
+        <!-- Left cactus arm -->
+        <a-cylinder
+          position="-0.09 0.16 0"
+          rotation="0 0 90"
+          radius="0.035"
+          height="0.19"
+          color="#477447">
+        </a-cylinder>
+
+        <a-cylinder
+          position="-0.17 0.23 0"
+          radius="0.035"
+          height="0.16"
+          color="#477447">
+        </a-cylinder>
+
+        <!-- Right cactus arm -->
+        <a-cylinder
+          position="0.09 0.22 0"
+          rotation="0 0 90"
+          radius="0.035"
+          height="0.18"
+          color="#477447">
+        </a-cylinder>
+
+        <a-cylinder
+          position="0.18 0.29 0"
+          radius="0.035"
+          height="0.14"
+          color="#477447">
+        </a-cylinder>
+
+        <!-- Pink cactus bloom -->
+        <a-sphere
+          position="0 0.42 0"
+          radius="0.075"
+          color="#E56B8A"
+          material="roughness: 0.65">
+        </a-sphere>
+
+        <!-- Yellow flower centre -->
+        <a-sphere
+          position="0 0.45 0.045"
+          radius="0.025"
+          color="#F5C542">
+        </a-sphere>
+
+      </a-entity>
+
+      <!-- CAMEL: simple 3D model made from shapes -->
+      <a-entity
+        id="camel"
+        position="0.20 -0.12 0.02"
+        slow-walk="distance: 0.20; speed: 0.0005">
+
+        <!-- Body -->
+        <a-sphere
+          position="0 0.20 0"
+          scale="0.24 0.12 0.10"
+          color="#B8793E">
+        </a-sphere>
+
+        <!-- Hump -->
+        <a-sphere
+          position="-0.03 0.31 0"
+          scale="0.09 0.10 0.08"
+          color="#A96532">
+        </a-sphere>
+
+        <!-- Neck -->
+        <a-cylinder
+          position="0.16 0.32 0"
+          rotation="0 0 -25"
+          radius="0.045"
+          height="0.25"
+          color="#B8793E">
+        </a-cylinder>
+
+        <!-- Head -->
+        <a-sphere
+          position="0.23 0.44 0"
+          scale="0.09 0.06 0.06"
+          color="#B8793E">
+        </a-sphere>
+
+        <!-- Muzzle -->
+        <a-sphere
+          position="0.29 0.42 0"
+          scale="0.045 0.03 0.035"
+          color="#D19A61">
+        </a-sphere>
+
+        <!-- Eye -->
+        <a-sphere
+          position="0.25 0.46 0.052"
+          radius="0.009"
+          color="#21150E">
+        </a-sphere>
+
+        <!-- Four legs -->
+        <a-cylinder
+          position="-0.14 0.07 0.055"
+          radius="0.018"
+          height="0.18"
+          color="#99602F">
+        </a-cylinder>
+
+        <a-cylinder
+          position="-0.04 0.07 -0.055"
+          radius="0.018"
+          height="0.18"
+          color="#99602F">
+        </a-cylinder>
+
+        <a-cylinder
+          position="0.10 0.07 0.055"
+          radius="0.018"
+          height="0.18"
+          color="#99602F">
+        </a-cylinder>
+
+        <a-cylinder
+          position="0.15 0.07 -0.055"
+          radius="0.018"
+          height="0.18"
+          color="#99602F">
+        </a-cylinder>
+
+        <!-- Decorative saddle -->
+        <a-box
+          position="-0.02 0.30 0"
+          width="0.20"
+          height="0.035"
+          depth="0.16"
+          color="#8E3030">
+        </a-box>
+
+        <a-box
+          position="-0.02 0.322 0"
+          width="0.15"
+          height="0.012"
+          depth="0.165"
+          color="#D5A13B">
+        </a-box>
+
+      </a-entity>
+
     </a-entity>
-
   </a-scene>
 </body>
 </html>
+```
+
