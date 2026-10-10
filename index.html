@@ -1,11 +1,11 @@
-```html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Rajasthan Desert AR</title>
+  <title>Jharokha - Living Desert AR</title>
 
   <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
@@ -14,8 +14,10 @@
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
   <style>
-    body {
+    html, body {
       margin: 0;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
     }
 
@@ -35,10 +37,10 @@
   </style>
 
   <script>
-    // Move the camel gently from side to side.
+    // Camel moves gently from side to side.
     AFRAME.registerComponent("slow-walk", {
       schema: {
-        distance: { type: "number", default: 0.20 },
+        distance: { type: "number", default: 0.08 },
         speed: { type: "number", default: 0.0005 }
       },
 
@@ -60,6 +62,94 @@
           this.data.distance;
       }
     });
+
+    // Creates a subtle animated heat haze.
+    AFRAME.registerComponent("desert-heat", {
+      init: function () {
+        this.canvas = document.createElement("canvas");
+        this.canvas.width = 1024;
+        this.canvas.height = 256;
+
+        this.ctx = this.canvas.getContext("2d");
+
+        this.texture = new THREE.CanvasTexture(this.canvas);
+        this.texture.minFilter = THREE.LinearFilter;
+
+        this.material = new THREE.MeshBasicMaterial({
+          map: this.texture,
+          transparent: true,
+          opacity: 0.24,
+          depthWrite: false,
+          side: THREE.DoubleSide
+        });
+
+        // Apply the material when the plane's mesh is ready.
+        this.el.addEventListener("object3dset", this.setMaterial);
+        this.setMaterial = () => {
+          const mesh = this.el.getObject3D("mesh");
+          if (mesh) {
+            mesh.material = this.material;
+          }
+        };
+
+        this.setMaterial();
+        this.startTime = null;
+      },
+
+      tick: function (time) {
+        if (!this.ctx || !this.texture) return;
+
+        if (this.startTime === null) {
+          this.startTime = time;
+        }
+
+        const ctx = this.ctx;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        const t = (time - this.startTime) * 0.001;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Soft, moving waves suggest hot air above the sand.
+        for (let i = 0; i < 18; i++) {
+          const y = 95 + i * 8;
+
+          ctx.beginPath();
+
+          for (let x = 0; x <= w; x += 8) {
+            const wave =
+              Math.sin(x * 0.018 + t * 1.3 + i * 0.6) * 3 +
+              Math.sin(x * 0.008 - t * 0.8) * 2;
+
+            const yy = y + wave;
+
+            if (x === 0) {
+              ctx.moveTo(x, yy);
+            } else {
+              ctx.lineTo(x, yy);
+            }
+          }
+
+          ctx.strokeStyle = "rgba(255, 238, 190, 0.10)";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        this.texture.needsUpdate = true;
+      },
+
+      remove: function () {
+        this.el.removeEventListener("object3dset", this.setMaterial);
+
+        if (this.texture) {
+          this.texture.dispose();
+        }
+
+        if (this.material) {
+          this.material.dispose();
+        }
+      }
+    });
   </script>
 </head>
 
@@ -75,7 +165,7 @@
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false">
 
-    <!-- Load your own cactus image -->
+    <!-- Load the existing cactus image -->
     <a-assets>
       <img
         id="cactusImage"
@@ -89,10 +179,20 @@
       look-controls="enabled: false">
     </a-camera>
 
-    <!-- Objects appear when the target image is detected -->
+    <!-- AR content appears when the printed target is detected -->
     <a-entity mindar-image-target="targetIndex: 0">
 
-      <!-- YOUR CACTUS IMAGE -->
+      <!-- Animated heat haze over the lower desert.
+           Adjust dimensions to match your printed target. -->
+      <a-plane
+        position="0 0.05 0.02"
+        width="1.60"
+        height="0.40"
+        material="transparent: true; opacity: 1; depthWrite: false"
+        desert-heat>
+      </a-plane>
+
+      <!-- Existing cactus image -->
       <a-image
         src="#cactusImage"
         position="-0.30 0 0.05"
@@ -101,11 +201,11 @@
         transparent="true">
       </a-image>
 
-      <!-- CAMEL -->
+      <!-- Existing camel -->
       <a-entity
         id="camel"
-        position="0.20 -0.12 0.02"
-        slow-walk="distance: 0.20; speed: 0.0005">
+        position="0.20 -0.12 0.04"
+        slow-walk="distance: 0.08; speed: 0.0005">
 
         <!-- Body -->
         <a-sphere
@@ -203,4 +303,3 @@
   </a-scene>
 </body>
 </html>
-```
