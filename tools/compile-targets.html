@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Prepare Jharokha image targets</title>
-  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/dist/mindar-image.prod.js"></script>
+  <script id="mindar-compiler" type="module" src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
   <style>
     body { max-width: 46rem; margin: 3rem auto; padding: 0 1rem; background: #f4eee3; color: #30261d; font: 16px/1.55 system-ui, sans-serif; }
     h1 { font: 700 1.8rem Georgia, serif; }
@@ -18,12 +18,25 @@
   <h1>Prepare the book’s image targets</h1>
   <p>This tool compiles the cropped target copies in <code>Images/targets/</code> into one <code>targets.mind</code> file. The numbered filenames define the target order used by the AR page.</p>
   <p class="note">The images are read from this project and processed in your browser. They are not uploaded to a server. The MindAR compiler script itself is loaded from jsDelivr.</p>
-  <button id="compile">Compile target set</button>
-  <div id="progress" role="status">Ready. This may take a few minutes on a phone or older computer.</div>
+  <button id="compile" disabled>Loading compiler…</button>
+  <div id="progress" role="status">Loading the MindAR compiler…</div>
   <script>
     const button = document.getElementById('compile');
     const output = document.getElementById('progress');
     const say = text => { output.textContent = text; };
+    const compilerScript = document.getElementById('mindar-compiler');
+    const compilerReady = new Promise((resolve, reject) => {
+      compilerScript.addEventListener('load', resolve, { once: true });
+      compilerScript.addEventListener('error', () => reject(new Error('MindAR compiler could not be loaded. Check your internet connection and reload this page.')), { once: true });
+    });
+    compilerReady.then(() => {
+      button.disabled = false;
+      button.textContent = 'Compile target set';
+      say('Ready. This may take a few minutes on a phone or older computer.');
+    }).catch(error => {
+      button.textContent = 'Compiler unavailable';
+      say(error.message);
+    });
     const loadImage = src => new Promise((resolve, reject) => {
       const image = new Image();
       image.onload = () => resolve(image);
@@ -43,9 +56,11 @@
           images.push(await loadImage(`../${entries[i].targetImage}`));
           say(`Loaded image ${i + 1} of ${entries.length}: ${entries[i].label}`);
         }
-        if (!window.MINDAR?.IMAGE?.Compiler) throw new Error('MindAR compiler did not load. Check your internet connection and reload this page.');
+        await compilerReady;
+        if (!window.MINDAR?.IMAGE?.Compiler) throw new Error('MindAR compiler loaded without its image compiler. Reload this page and try again.');
         const compiler = new window.MINDAR.IMAGE.Compiler();
         const dataList = await compiler.compileImageTargets(images, progress => say(`Finding tracking detail: ${Number(progress).toFixed(1)}%`));
+        if (dataList.length !== entries.length) throw new Error(`MindAR compiled ${dataList.length} of ${entries.length} target images. Nothing was downloaded.`);
         const data = await compiler.exportData();
         const featureReport = dataList.map((target, index) => {
           const scale = target.matchingData?.[0];
@@ -57,8 +72,8 @@
         link.href = url;
         link.download = 'targets.mind';
         link.click();
-        URL.revokeObjectURL(url);
-        say(`Done. Downloaded targets.mind with ${entries.length} targets. Target 0 is the desert panorama; the remaining indexes follow the numbered manifest order.\n\nFeature check (higher counts and broad coverage generally track better):\n${featureReport.join('\n')}\n\nIf a target has very few features, it may need a better full-page scan or to be left out.`);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        say(`Done. Downloaded targets.mind with ${dataList.length} targets. Target 0 is the desert panorama; the remaining indexes follow the numbered manifest order.\n\nFeature check (higher counts and broad coverage generally track better):\n${featureReport.join('\n')}\n\nIf a target has very few features, it may need a better full-page scan or to be left out.`);
       } catch (error) {
         say(`Could not compile: ${error.message}`);
       } finally {

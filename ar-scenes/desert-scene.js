@@ -1,4 +1,4 @@
-/* Procedural miniature for the one target currently compiled in targets.mind.
+/* Procedural miniature for target 0 (desert-original.png) in targets.mind.
    It combines genuine A-Frame geometry with the supplied transparent cutouts. */
 (function () {
   const AFRAME = window.AFRAME;

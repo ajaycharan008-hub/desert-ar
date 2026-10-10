@@ -4,7 +4,7 @@ Scan any prepared illustration in the book to show its matching procedural 3D mi
 
 ## How it works
 
-- `tools/prepare-targets.py` crops empty transparent/white margins into new files under `Images/targets/`. It never changes the original artwork.
+- `tools/prepare-targets.py` crops empty transparent/white margins and downsizes only the tracking copies to at most 640 px per side under `Images/targets/`. It never changes the original artwork.
 - `Images/targets/target-manifest.json` records the exact target-index order and the 3D scene kind for each image.
 - `tools/compile-targets.html` compiles those local target copies into one `targets.mind` file in the browser. The images stay on the local project server; the compiler JavaScript is fetched from jsDelivr.
 - `index.html` creates one MindAR image anchor per manifest entry.
@@ -17,6 +17,6 @@ Scan any prepared illustration in the book to show its matching procedural 3D mi
 3. Serve the repository over localhost or HTTPS. Open `tools/compile-targets.html`, press **Compile target set**, and save the downloaded `targets.mind` at the repository root, replacing the old one.
 4. Publish the updated project to GitHub Pages. On a phone, open the HTTPS site, tap **Start camera**, and scan any target artwork.
 
-The target order is deliberate: index 0 is `desert-original.png`; indexes 1–18 follow the case-insensitive filename order of `Images/*.png`. Keep the manifest and compiled `targets.mind` together. The compiler page lists feature counts after compilation; targets with little visual detail may not track reliably. Full-page scans are usually the strongest targets, especially for mostly white assembly sheets or simple petal/leaf shapes.
+The target order is deliberate: index 0 is `desert-original.png`; indexes 1–18 follow the case-insensitive filename order of `Images/*.png`. Keep the manifest and compiled `targets.mind` together. The compiler page lists feature counts after compilation; targets with little visual detail may need a well-lit, steady scan. Full-page scans are usually the strongest targets, especially for mostly white assembly sheets or simple petal/leaf shapes.
 
 The models are stylized, hand-built geometry in JavaScript, with small animations. A single flat image cannot automatically provide a photorealistic 3D reconstruction; the scene for each illustration is a matching 3D interpretation. Additional full-page artwork can be added to `Images/` and will be included by the preparation script.

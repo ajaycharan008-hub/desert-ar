@@ -11,6 +11,7 @@ IMAGE_DIR = ROOT / "Images"
 OUT_DIR = IMAGE_DIR / "targets"
 PAGE_TARGET = ROOT / "desert-original.png"
 PADDING = 12
+MAX_EDGE = 640
 
 
 def visible_bounds(image: Image.Image) -> tuple[int, int, int, int]:
@@ -43,7 +44,9 @@ def prepare(source: Path, destination: Path) -> list[int]:
         # MindAR sees the same white paper background a printed cutout sits on.
         paper = Image.new("RGBA", cropped.size, (255, 255, 255, 255))
         paper.alpha_composite(cropped)
-        paper.convert("RGB").save(destination, format="PNG", optimize=True)
+        tracking_image = paper.convert("RGB")
+        tracking_image.thumbnail((MAX_EDGE, MAX_EDGE), Image.Resampling.LANCZOS)
+        tracking_image.save(destination, format="PNG", optimize=True)
     return [int(value) for value in bounds]
 
 
