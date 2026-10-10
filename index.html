@@ -1,305 +1,90 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Jharokha - Living Desert AR</title>
-
-  <!-- A-Frame -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#8b492d">
+  <title>Jharokha — Living Rajasthan</title>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-
-  <!-- MindAR -->
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <script src="./ar-scenes/desert-scene.js"></script>
+  <script src="./ar-scenes/art-models.js"></script>
   <style>
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
-
-    .ar-instructions {
-      position: fixed;
-      top: 15px;
-      left: 0;
-      width: 100%;
-      text-align: center;
-      color: white;
-      font-family: Arial, sans-serif;
-      font-size: 16px;
-      z-index: 10;
-      text-shadow: 1px 1px 4px #000;
-      pointer-events: none;
-    }
+    :root { color-scheme: dark; font-family: Georgia, 'Times New Roman', serif; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #171b1b; }
+    a-scene { position: fixed; inset: 0; }
+    .hud { position: fixed; z-index: 5; inset: env(safe-area-inset-top, 0) 0 auto; display: grid; justify-items: center; gap: .45rem; padding: 1rem 1.1rem; pointer-events: none; text-align: center; }
+    .brand { padding: .42rem .8rem; border: 1px solid #f3d7a288; border-radius: 999px; background: #251d19cc; color: #f6e7c9; font: 600 .72rem/1.1 system-ui, sans-serif; letter-spacing: .17em; text-transform: uppercase; }
+    .hint { max-width: 30rem; padding: .5rem .8rem; border-radius: 1rem; background: #1c211edb; color: #fff6e6; font: .9rem/1.35 system-ui, sans-serif; text-shadow: 0 1px 3px #000; }
+    .hint[data-state="found"] { color: #f5dca6; }
+    #start-camera { display: none; margin-top: .3rem; padding: .7rem 1.15rem; border: 1px solid #f0d59b; border-radius: 999px; background: #7d482d; color: #fff7e6; font: 700 .9rem system-ui, sans-serif; pointer-events: auto; }
+    #start-camera:disabled { opacity: .65; }
+    .credit { position: fixed; z-index: 5; inset: auto 0 env(safe-area-inset-bottom, 0); padding: .75rem; color: #fff4dfb3; text-align: center; font: .68rem system-ui, sans-serif; pointer-events: none; }
+    .a-enter-vr { display: none !important; }
   </style>
-
+</head>
+<body>
+  <header class="hud" aria-live="polite">
+    <div class="brand">Jharokha · Rajasthan pop-up book</div>
+    <div class="hint" id="status">Preparing the book’s image library…</div>
+    <button id="start-camera" type="button">Start camera</button>
+  </header>
+  <div class="credit">Point at any prepared book illustration to reveal its 3D miniature</div>
+  <a-scene
+    mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; maxTrack: 1; uiLoading: no; uiScanning: no; uiError: no"
+    renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true"
+    color-space="sRGB"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false"
+    loading-screen="enabled: false">
+    <a-entity light="type: ambient; color: #fff0d8; intensity: 1.1"></a-entity>
+    <a-entity light="type: directional; color: #ffe0a6; intensity: 1.45" position="-1 2 1"></a-entity>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-entity id="target-pages"></a-entity>
+  </a-scene>
   <script>
-    // Camel moves gently from side to side.
-    AFRAME.registerComponent("slow-walk", {
-      schema: {
-        distance: { type: "number", default: 0.08 },
-        speed: { type: "number", default: 0.0005 }
-      },
+    const sceneEl = document.querySelector('a-scene');
+    const pagesRoot = document.getElementById('target-pages');
+    const statusEl = document.getElementById('status');
+    const startButton = document.getElementById('start-camera');
 
-      init: function () {
-        this.startX = this.el.object3D.position.x;
-        this.startTime = null;
-      },
-
-      tick: function (time) {
-        if (this.startTime === null) {
-          this.startTime = time;
-        }
-
-        const elapsed = time - this.startTime;
-
-        this.el.object3D.position.x =
-          this.startX +
-          Math.sin(elapsed * this.data.speed) *
-          this.data.distance;
-      }
-    });
-
-    // Creates a subtle animated heat haze.
-    AFRAME.registerComponent("desert-heat", {
-      init: function () {
-        this.canvas = document.createElement("canvas");
-        this.canvas.width = 1024;
-        this.canvas.height = 256;
-
-        this.ctx = this.canvas.getContext("2d");
-
-        this.texture = new THREE.CanvasTexture(this.canvas);
-        this.texture.minFilter = THREE.LinearFilter;
-
-        this.material = new THREE.MeshBasicMaterial({
-          map: this.texture,
-          transparent: true,
-          opacity: 0.24,
-          depthWrite: false,
-          side: THREE.DoubleSide
+    async function preparePages() {
+      const response = await fetch('./Images/targets/target-manifest.json');
+      if (!response.ok) throw new Error('The prepared image list is missing.');
+      const manifest = await response.json();
+      for (const page of manifest.targets) {
+        const anchor = document.createElement('a-entity');
+        anchor.setAttribute('mindar-image-target', `targetIndex: ${page.targetIndex}`);
+        anchor.addEventListener('targetFound', () => {
+          statusEl.dataset.state = 'found';
+          statusEl.textContent = `${page.label} · 3D scene found`;
+        });
+        anchor.addEventListener('targetLost', () => {
+          statusEl.dataset.state = '';
+          statusEl.textContent = 'Point at any prepared book illustration.';
         });
 
-        // Apply the material when the plane's mesh is ready.
-        this.el.addEventListener("object3dset", this.setMaterial);
-        this.setMaterial = () => {
-          const mesh = this.el.getObject3D("mesh");
-          if (mesh) {
-            mesh.material = this.material;
-          }
-        };
-
-        this.setMaterial();
-        this.startTime = null;
-      },
-
-      tick: function (time) {
-        if (!this.ctx || !this.texture) return;
-
-        if (this.startTime === null) {
-          this.startTime = time;
-        }
-
-        const ctx = this.ctx;
-        const w = this.canvas.width;
-        const h = this.canvas.height;
-        const t = (time - this.startTime) * 0.001;
-
-        ctx.clearRect(0, 0, w, h);
-
-        // Soft, moving waves suggest hot air above the sand.
-        for (let i = 0; i < 18; i++) {
-          const y = 95 + i * 8;
-
-          ctx.beginPath();
-
-          for (let x = 0; x <= w; x += 8) {
-            const wave =
-              Math.sin(x * 0.018 + t * 1.3 + i * 0.6) * 3 +
-              Math.sin(x * 0.008 - t * 0.8) * 2;
-
-            const yy = y + wave;
-
-            if (x === 0) {
-              ctx.moveTo(x, yy);
-            } else {
-              ctx.lineTo(x, yy);
-            }
-          }
-
-          ctx.strokeStyle = "rgba(255, 238, 190, 0.10)";
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        }
-
-        this.texture.needsUpdate = true;
-      },
-
-      remove: function () {
-        this.el.removeEventListener("object3dset", this.setMaterial);
-
-        if (this.texture) {
-          this.texture.dispose();
-        }
-
-        if (this.material) {
-          this.material.dispose();
-        }
+        const model = document.createElement('a-entity');
+        if (page.targetIndex === 0) model.setAttribute('desert-miniature', '');
+        else model.setAttribute('jharokha-art-model', `kind: ${page.scene}`);
+        anchor.appendChild(model);
+        pagesRoot.appendChild(anchor);
       }
+      statusEl.textContent = `${manifest.count} illustrations ready. Start the camera and scan one.`;
+      startButton.style.display = 'block';
+    }
+
+    sceneEl.addEventListener('arReady', () => { statusEl.textContent = 'Camera ready — point at an illustration.'; });
+    sceneEl.addEventListener('arError', () => { statusEl.textContent = 'Camera could not start. Open this page over HTTPS and allow camera access.'; });
+    startButton.addEventListener('click', async () => {
+      startButton.disabled = true;
+      statusEl.textContent = 'Starting camera…';
+      try { await sceneEl.systems['mindar-image-system'].start(); }
+      catch (error) { statusEl.textContent = 'Could not start the camera. Check browser permissions and HTTPS.'; startButton.disabled = false; }
     });
+
+    preparePages().catch(error => { statusEl.textContent = `Could not prepare the image library: ${error.message}`; });
   </script>
-</head>
-
-<body>
-  <div class="ar-instructions">
-    Scan your Rajasthan desert picture
-  </div>
-
-  <a-scene
-    mindar-image="imageTargetSrc: ./targets.mind; autoStart: true;"
-    color-space="sRGB"
-    renderer="colorManagement: true"
-    vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false">
-
-    <!-- Load the existing cactus image -->
-    <a-assets>
-      <img
-        id="cactusImage"
-        src="./cact.png"
-        alt="Cactus bloom">
-    </a-assets>
-
-    <!-- Camera -->
-    <a-camera
-      position="0 0 0"
-      look-controls="enabled: false">
-    </a-camera>
-
-    <!-- AR content appears when the printed target is detected -->
-    <a-entity mindar-image-target="targetIndex: 0">
-
-      <!-- Animated heat haze over the lower desert.
-           Adjust dimensions to match your printed target. -->
-      <a-plane
-        position="0 0.05 0.02"
-        width="1.60"
-        height="0.40"
-        material="transparent: true; opacity: 1; depthWrite: false"
-        desert-heat>
-      </a-plane>
-
-      <!-- Existing cactus image -->
-      <a-image
-        src="#cactusImage"
-        position="-0.30 0 0.05"
-        width="0.40"
-        height="0.50"
-        transparent="true">
-      </a-image>
-
-      <!-- Existing camel -->
-      <a-entity
-        id="camel"
-        position="0.20 -0.12 0.04"
-        slow-walk="distance: 0.08; speed: 0.0005">
-
-        <!-- Body -->
-        <a-sphere
-          position="0 0.20 0"
-          scale="0.24 0.12 0.10"
-          color="#B8793E">
-        </a-sphere>
-
-        <!-- Hump -->
-        <a-sphere
-          position="-0.03 0.31 0"
-          scale="0.09 0.10 0.08"
-          color="#A96532">
-        </a-sphere>
-
-        <!-- Neck -->
-        <a-cylinder
-          position="0.16 0.32 0"
-          rotation="0 0 -25"
-          radius="0.045"
-          height="0.25"
-          color="#B8793E">
-        </a-cylinder>
-
-        <!-- Head -->
-        <a-sphere
-          position="0.23 0.44 0"
-          scale="0.09 0.06 0.06"
-          color="#B8793E">
-        </a-sphere>
-
-        <!-- Muzzle -->
-        <a-sphere
-          position="0.29 0.42 0"
-          scale="0.045 0.03 0.035"
-          color="#D19A61">
-        </a-sphere>
-
-        <!-- Eye -->
-        <a-sphere
-          position="0.25 0.46 0.052"
-          radius="0.009"
-          color="#21150E">
-        </a-sphere>
-
-        <!-- Legs -->
-        <a-cylinder
-          position="-0.14 0.07 0.055"
-          radius="0.018"
-          height="0.18"
-          color="#99602F">
-        </a-cylinder>
-
-        <a-cylinder
-          position="-0.04 0.07 -0.055"
-          radius="0.018"
-          height="0.18"
-          color="#99602F">
-        </a-cylinder>
-
-        <a-cylinder
-          position="0.10 0.07 0.055"
-          radius="0.018"
-          height="0.18"
-          color="#99602F">
-        </a-cylinder>
-
-        <a-cylinder
-          position="0.15 0.07 -0.055"
-          radius="0.018"
-          height="0.18"
-          color="#99602F">
-        </a-cylinder>
-
-        <!-- Traditional saddle -->
-        <a-box
-          position="-0.02 0.30 0"
-          width="0.20"
-          height="0.035"
-          depth="0.16"
-          color="#8E3030">
-        </a-box>
-
-        <a-box
-          position="-0.02 0.322 0"
-          width="0.15"
-          height="0.012"
-          depth="0.165"
-          color="#D5A13B">
-        </a-box>
-
-      </a-entity>
-
-    </a-entity>
-  </a-scene>
 </body>
 </html>

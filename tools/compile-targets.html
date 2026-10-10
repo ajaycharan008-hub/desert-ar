@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prepare Jharokha image targets</title>
+  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/dist/mindar-image.prod.js"></script>
+  <style>
+    body { max-width: 46rem; margin: 3rem auto; padding: 0 1rem; background: #f4eee3; color: #30261d; font: 16px/1.55 system-ui, sans-serif; }
+    h1 { font: 700 1.8rem Georgia, serif; }
+    button { border: 0; border-radius: .6rem; padding: .8rem 1.2rem; background: #77452d; color: white; font-weight: 700; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: wait; }
+    #progress { margin-top: 1rem; min-height: 3rem; padding: 1rem; background: white; border-radius: .6rem; white-space: pre-wrap; }
+    .note { padding: .8rem 1rem; border-left: 4px solid #c89545; background: #fff9ed; }
+  </style>
+</head>
+<body>
+  <h1>Prepare the book’s image targets</h1>
+  <p>This tool compiles the cropped target copies in <code>Images/targets/</code> into one <code>targets.mind</code> file. The numbered filenames define the target order used by the AR page.</p>
+  <p class="note">The images are read from this project and processed in your browser. They are not uploaded to a server. The MindAR compiler script itself is loaded from jsDelivr.</p>
+  <button id="compile">Compile target set</button>
+  <div id="progress" role="status">Ready. This may take a few minutes on a phone or older computer.</div>
+  <script>
+    const button = document.getElementById('compile');
+    const output = document.getElementById('progress');
+    const say = text => { output.textContent = text; };
+    const loadImage = src => new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error(`Could not load ${src}`));
+      image.src = src;
+    });
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      try {
+        const manifest = await fetch('../Images/targets/target-manifest.json').then(response => {
+          if (!response.ok) throw new Error('Could not read the target manifest.');
+          return response.json();
+        });
+        const entries = manifest.targets.slice().sort((a, b) => a.targetIndex - b.targetIndex);
+        const images = [];
+        for (let i = 0; i < entries.length; i++) {
+          images.push(await loadImage(`../${entries[i].targetImage}`));
+          say(`Loaded image ${i + 1} of ${entries.length}: ${entries[i].label}`);
+        }
+        if (!window.MINDAR?.IMAGE?.Compiler) throw new Error('MindAR compiler did not load. Check your internet connection and reload this page.');
+        const compiler = new window.MINDAR.IMAGE.Compiler();
+        const dataList = await compiler.compileImageTargets(images, progress => say(`Finding tracking detail: ${Number(progress).toFixed(1)}%`));
+        const data = await compiler.exportData();
+        const featureReport = dataList.map((target, index) => {
+          const scale = target.matchingData?.[0];
+          const features = (scale?.maximaPoints?.length || 0) + (scale?.minimaPoints?.length || 0);
+          return `${String(index).padStart(2, '0')} · ${entries[index].label} — ${features} detected features`;
+        });
+        const url = URL.createObjectURL(new Blob([data], { type: 'application/octet-stream' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'targets.mind';
+        link.click();
+        URL.revokeObjectURL(url);
+        say(`Done. Downloaded targets.mind with ${entries.length} targets. Target 0 is the desert panorama; the remaining indexes follow the numbered manifest order.\n\nFeature check (higher counts and broad coverage generally track better):\n${featureReport.join('\n')}\n\nIf a target has very few features, it may need a better full-page scan or to be left out.`);
+      } catch (error) {
+        say(`Could not compile: ${error.message}`);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
